@@ -917,6 +917,33 @@
     padding: 32px 24px 80px;
   }
 
+  /* Manual entry form in library */
+  .manual-entry-card {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .manual-entry-card.visible { display: block; }
+  .manual-entry-card h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    font-weight: 400;
+    margin-bottom: 16px;
+  }
+  .manual-entry-card .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .manual-entry-card .form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
   /* NotebookLM handoff sub-steps */
   .nlm-substep {
     display: flex;
@@ -1196,7 +1223,8 @@
         </div>
         <div class="nlm-reminder-body" id="nlm-reminder-body" style="display:none;">
           <p style="margin-bottom:8px;">Paste the text below into NotebookLM's <strong>custom instructions</strong> field before generating the audio overview:</p>
-          <pre id="nlm-instructions-text">• Vocal demeanor – Maintain a calm, grounded, and steady tone. Be professional yet soothing, avoiding extremes such as being overly enthusiastic, overly casual, or overly clinical. The voice should carry gentle authority while still feeling safe and approachable.
+          <pre id="nlm-instructions-text">• No source references — Never reference or mention the source material, article, document, or text. Don't say "according to the article," "the source mentions," "the author writes," or anything similar. Present all information as your own knowledge, as if you're two experts having a natural conversation about a topic you know deeply. No meta-commentary about where the information comes from.
+• Vocal demeanor – Maintain a calm, grounded, and steady tone. Be professional yet soothing, avoiding extremes such as being overly enthusiastic, overly casual, or overly clinical. The voice should carry gentle authority while still feeling safe and approachable.
 • Speak directly to members – Frame every insight, reflection, or question as if you're talking to the Circles listeners here and now, not to the "source" of the content.
 • Make it human and relatable – Translate ideas into warm, conversational language. At key moments, invite members to drop an emoji if something resonates to help them express without words.
 • Encourage engagement – Instead of analyzing the text itself, draw out feelings, reflections, and lived experiences from the listeners, weaving their voices and reactions (including emojis) into the flow.
@@ -1244,7 +1272,8 @@
         <div class="nlm-substep-content">
           <div class="nlm-substep-title">Set custom instructions</div>
           <div class="nlm-substep-desc">In NotebookLM's Audio Overview settings, paste these custom instructions before generating audio.</div>
-          <div class="nlm-instructions-box" id="nlm-instructions-box">&#8226; Vocal demeanor &#8211; Maintain a calm, grounded, and steady tone. Be professional yet soothing, avoiding extremes such as being overly enthusiastic, overly casual, or overly clinical. The voice should carry gentle authority while still feeling safe and approachable.
+          <div class="nlm-instructions-box" id="nlm-instructions-box">&#8226; No source references &#8212; Never reference or mention the source material, article, document, or text. Don&#8217;t say &#8220;according to the article,&#8221; &#8220;the source mentions,&#8221; &#8220;the author writes,&#8221; or anything similar. Present all information as your own knowledge, as if you&#8217;re two experts having a natural conversation about a topic you know deeply. No meta-commentary about where the information comes from.
+&#8226; Vocal demeanor &#8211; Maintain a calm, grounded, and steady tone. Be professional yet soothing, avoiding extremes such as being overly enthusiastic, overly casual, or overly clinical. The voice should carry gentle authority while still feeling safe and approachable.
 &#8226; Speak directly to members &#8211; Frame every insight, reflection, or question as if you&#8217;re talking to the Circles listeners here and now, not to the &#8220;source&#8221; of the content.
 &#8226; Make it human and relatable &#8211; Translate ideas into warm, conversational language. At key moments, invite members to drop an emoji if something resonates to help them express without words.
 &#8226; Encourage engagement &#8211; Instead of analyzing the text itself, draw out feelings, reflections, and lived experiences from the listeners, weaving their voices and reactions (including emojis) into the flow.
@@ -1459,7 +1488,61 @@ brew install ffmpeg</pre>
           <option value="psychoeducation">Psychoeducation</option>
         </select>
       </div>
-      <div class="library-count" id="lib-count">0 sessions</div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="library-count" id="lib-count">0 sessions</div>
+        <button class="btn btn-secondary btn-sm" onclick="toggleManualEntry()">+ Add manually</button>
+      </div>
+    </div>
+
+    <div class="manual-entry-card" id="manual-entry-card">
+      <h3>Add Episode Manually</h3>
+      <div class="form-group">
+        <label for="me-title">Title <span style="color:var(--text-muted)">*</span></label>
+        <input type="text" id="me-title" placeholder="e.g., Breaking Free from the Guilt of No-Contact">
+      </div>
+      <div class="form-group">
+        <label for="me-desc">Description</label>
+        <textarea id="me-desc" rows="3" placeholder="A short description of the session..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="me-category">Category</label>
+          <select id="me-category">
+            <option value="emotional-processing">Emotional Processing</option>
+            <option value="personal-growth">Personal Growth</option>
+            <option value="skills-development">Skills Development</option>
+            <option value="psychoeducation">Psychoeducation</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="me-audience">Audience Stage</label>
+          <select id="me-audience">
+            <option value="early">Early recovery (still confused)</option>
+            <option value="mid">Mid recovery (gaining clarity)</option>
+            <option value="advanced">Further along (rebuilding)</option>
+            <option value="general">General (all stages)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="me-topic">Topic Name</label>
+          <input type="text" id="me-topic" placeholder="e.g., Setting boundaries">
+        </div>
+        <div class="form-group">
+          <label for="me-date">Date Created</label>
+          <input type="date" id="me-date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="me-audio-url">Audio File URL <span style="color:var(--text-muted)">(optional)</span></label>
+        <input type="text" id="me-audio-url" placeholder="https://example.com/episode.mp3">
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveManualEntry()">Save to Library</button>
+        <button class="btn btn-secondary" onclick="toggleManualEntry()">Cancel</button>
+      </div>
+      <div class="status-message" id="me-status"></div>
     </div>
 
     <div id="library-list">
@@ -2243,6 +2326,64 @@ DESC 3: [description]`;
     library = library.filter(e => e.id !== id);
     renderLibrary();
     showToast('Session deleted');
+  }
+
+  function toggleManualEntry() {
+    const card = document.getElementById('manual-entry-card');
+    const isVisible = card.classList.contains('visible');
+    card.classList.toggle('visible', !isVisible);
+    if (!isVisible) {
+      // Default date to today
+      document.getElementById('me-date').valueAsDate = new Date();
+      document.getElementById('me-status').textContent = '';
+    }
+  }
+
+  async function saveManualEntry() {
+    const title = document.getElementById('me-title').value.trim();
+    if (!title) { showToast('Title is required'); return; }
+
+    const entry = {
+      id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+      title,
+      description: document.getElementById('me-desc').value.trim(),
+      category: document.getElementById('me-category').value,
+      audience: document.getElementById('me-audience').value,
+      topic: document.getElementById('me-topic').value.trim(),
+      duration: 'TBD',
+      hasAudio: !!document.getElementById('me-audio-url').value.trim(),
+      audioUrl: document.getElementById('me-audio-url').value.trim() || null,
+      createdAt: document.getElementById('me-date').value
+        ? new Date(document.getElementById('me-date').value).toISOString()
+        : new Date().toISOString(),
+      manualEntry: true
+    };
+
+    const statusEl = document.getElementById('me-status');
+    statusEl.textContent = 'Saving...';
+
+    try {
+      const docRef = await db.collection(COLLECTION).add(entry);
+      entry._docId = docRef.id;
+      library.unshift(entry);
+      renderLibrary();
+
+      // Reset form
+      document.getElementById('me-title').value = '';
+      document.getElementById('me-desc').value = '';
+      document.getElementById('me-topic').value = '';
+      document.getElementById('me-audio-url').value = '';
+      document.getElementById('me-date').valueAsDate = new Date();
+      document.getElementById('me-category').value = 'emotional-processing';
+      document.getElementById('me-audience').value = 'early';
+      statusEl.textContent = '';
+
+      document.getElementById('manual-entry-card').classList.remove('visible');
+      showToast('Episode added to library');
+    } catch (err) {
+      console.error('Failed to save manual entry:', err);
+      statusEl.textContent = 'Error saving — ' + err.message;
+    }
   }
 
   function escapeHtml(str) {
