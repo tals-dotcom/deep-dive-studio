@@ -1582,9 +1582,13 @@ brew install ffmpeg</pre>
   let libraryOpen = false;
 
   function goToStep(n) {
-    // Can navigate to completed steps, current step, or next available step
-    if (n > currentStep && !completedSteps.has(n) && !completedSteps.has(n - 1) && n !== currentStep + 1) return;
-    if (n > currentStep && n > 1 && !completedSteps.has(n - 1) && n !== currentStep) return;
+    // Allow: any completed step, the current step, or one step forward from current
+    if (n !== currentStep && !completedSteps.has(n) && n !== currentStep + 1) return;
+
+    // Mark the current step as completed when moving forward
+    if (n > currentStep) {
+      completeStep(currentStep);
+    }
 
     // Close library if open
     if (libraryOpen) toggleLibrary();
