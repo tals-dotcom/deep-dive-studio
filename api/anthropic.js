@@ -35,6 +35,7 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
+    console.error("[proxy] OPENROUTER_API_KEY is not set");
     res.writeHead(500, { ...corsHeaders(origin), "Content-Type": "application/json" });
     res.end(JSON.stringify({ error: "OPENROUTER_API_KEY not configured" }));
     return;
@@ -43,7 +44,16 @@ export default async function handler(req, res) {
   try {
     const { model, max_tokens, messages } = req.body;
 
+    console.log("[proxy] Incoming request:", JSON.stringify({
+      model,
+      max_tokens,
+      messageCount: messages?.length,
+      firstMessageRole: messages?.[0]?.role,
+      firstMessageLength: messages?.[0]?.content?.length,
+    }));
+
     if (!messages || !Array.isArray(messages)) {
+      console.error("[proxy] Invalid messages field:", typeof messages);
       res.writeHead(400, { ...corsHeaders(origin), "Content-Type": "application/json" });
       res.end(JSON.stringify({ error: "Missing or invalid 'messages' field" }));
       return;
@@ -66,12 +76,25 @@ export default async function handler(req, res) {
 
     const data = await openRouterRes.json();
 
+    console.log("[proxy] OpenRouter response:", JSON.stringify({
+      status: openRouterRes.status,
+      hasChoices: !!data.choices,
+      choicesLength: data.choices?.length,
+      error: data.error,
+      contentLength: data.choices?.[0]?.message?.content?.length,
+    }));
+
+    if (!openRouterRes.ok) {
+      console.error("[proxy] OpenRouter error response:", JSON.stringify(data));
+    }
+
     res.writeHead(openRouterRes.status, {
       ...corsHeaders(origin),
       "Content-Type": "application/json",
     });
     res.end(JSON.stringify(data));
   } catch (err) {
+    console.error("[proxy] Proxy exception:", err.message, err.stack);
     res.writeHead(502, { ...corsHeaders(origin), "Content-Type": "application/json" });
     res.end(JSON.stringify({ error: "Proxy error: " + err.message }));
   }

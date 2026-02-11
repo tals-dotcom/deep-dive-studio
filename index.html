@@ -1424,10 +1424,16 @@ brew install ffmpeg</pre>
 
       progressFill.style.width = '40%';
       const data1 = await response1.json();
+
+      if (!response1.ok) {
+        const errMsg = data1.error?.message || data1.error?.code || JSON.stringify(data1.error) || `HTTP ${response1.status}`;
+        throw new Error('Part 1 API error: ' + errMsg);
+      }
+
       const part1Text = data1.choices?.[0]?.message?.content || '';
 
       if (!part1Text || part1Text.length < 500) {
-        throw new Error('Part 1 generation failed or returned insufficient content.');
+        throw new Error('Part 1 returned insufficient content (' + part1Text.length + ' chars). Response: ' + JSON.stringify(data1).substring(0, 500));
       }
 
       updateLoadingText('gen', 'Part 1 done ✓ — Generating part 2 of 2 — strategies & integration...');
@@ -1446,6 +1452,12 @@ brew install ffmpeg</pre>
 
       progressFill.style.width = '80%';
       const data2 = await response2.json();
+
+      if (!response2.ok) {
+        const errMsg = data2.error?.message || data2.error?.code || JSON.stringify(data2.error) || `HTTP ${response2.status}`;
+        throw new Error('Part 2 API error: ' + errMsg);
+      }
+
       const part2Text = data2.choices?.[0]?.message?.content || '';
 
       // Stitch
@@ -1610,6 +1622,12 @@ DESC 3: [description]`;
       });
 
       const data = await response.json();
+
+      if (!response.ok) {
+        const errMsg = data.error?.message || data.error?.code || JSON.stringify(data.error) || `HTTP ${response.status}`;
+        throw new Error('Metadata API error: ' + errMsg);
+      }
+
       const text = data.choices?.[0]?.message?.content || '';
 
       // Parse first title and first desc
