@@ -1,11 +1,12 @@
-const ALLOWED_ORIGINS = [
-  "https://tals-dotcom.github.io",
-  "https://deep-dive-studio.vercel.app",
-];
+function isAllowedOrigin(origin) {
+  if (origin === "https://tals-dotcom.github.io") return true;
+  if (origin.endsWith(".vercel.app") && origin.startsWith("https://")) return true;
+  return false;
+}
 
 function corsHeaders(origin) {
   return {
-    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : "",
+    "Access-Control-Allow-Origin": isAllowedOrigin(origin) ? origin : "",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Max-Age": "86400",
@@ -30,7 +31,7 @@ export default async function handler(req, res) {
   }
 
   // Origin check
-  if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+  if (origin && !isAllowedOrigin(origin)) {
     res.writeHead(403, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ error: "Forbidden origin" }));
     return;
