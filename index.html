@@ -1161,6 +1161,48 @@ brew install ffmpeg</pre>
     }
   }
 
+  // Read an SSE stream from the proxy and accumulate the text content.
+  // onChunk is called with each text fragment as it arrives.
+  async function readSSEStream(response, label, onChunk) {
+    // Non-OK responses are returned as JSON by the proxy
+    const contentType = response.headers.get('content-type') || '';
+    if (!response.ok || !contentType.includes('text/event-stream')) {
+      const data = await safeParseResponse(response, label);
+      const errMsg = data.error?.message || data.error?.code || JSON.stringify(data.error) || `HTTP ${response.status}`;
+      throw new Error(label + ' API error: ' + errMsg);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullText = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop(); // keep incomplete line in buffer
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.slice(6);
+        if (payload === '[DONE]') continue;
+        try {
+          const parsed = JSON.parse(payload);
+          const delta = parsed.choices?.[0]?.delta?.content || '';
+          if (delta) {
+            fullText += delta;
+            if (onChunk) onChunk(delta, fullText);
+          }
+        } catch {}
+      }
+    }
+
+    return fullText;
+  }
+
   // ========== State ==========
   let closingFile = null;
   let podcastFile = null;
@@ -1423,6 +1465,9 @@ brew install ffmpeg</pre>
       updateLoadingText('gen', 'Generating part 1 of 2 — foundations & emotional reality...');
       progressFill.style.width = '15%';
 
+      outputEl.textContent = '';
+      outputEl.classList.add('visible');
+
       const response1 = await fetch(ANTHROPIC_PROXY_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1433,18 +1478,13 @@ brew install ffmpeg</pre>
         })
       });
 
-      progressFill.style.width = '40%';
-      const data1 = await safeParseResponse(response1, 'Part 1');
-
-      if (!response1.ok) {
-        const errMsg = data1.error?.message || data1.error?.code || JSON.stringify(data1.error) || `HTTP ${response1.status}`;
-        throw new Error('Part 1 API error: ' + errMsg);
-      }
-
-      const part1Text = data1.choices?.[0]?.message?.content || '';
+      const part1Text = await readSSEStream(response1, 'Part 1', (delta, full) => {
+        outputEl.textContent = full;
+        progressFill.style.width = (15 + Math.min(25, full.length / 200)) + '%';
+      });
 
       if (!part1Text || part1Text.length < 500) {
-        throw new Error('Part 1 returned insufficient content (' + part1Text.length + ' chars). Response: ' + JSON.stringify(data1).substring(0, 500));
+        throw new Error('Part 1 returned insufficient content (' + part1Text.length + ' chars).');
       }
 
       updateLoadingText('gen', 'Part 1 done ✓ — Generating part 2 of 2 — strategies & integration...');
@@ -1461,22 +1501,16 @@ brew install ffmpeg</pre>
         })
       });
 
-      progressFill.style.width = '80%';
-      const data2 = await safeParseResponse(response2, 'Part 2');
-
-      if (!response2.ok) {
-        const errMsg = data2.error?.message || data2.error?.code || JSON.stringify(data2.error) || `HTTP ${response2.status}`;
-        throw new Error('Part 2 API error: ' + errMsg);
-      }
-
-      const part2Text = data2.choices?.[0]?.message?.content || '';
+      const part2Text = await readSSEStream(response2, 'Part 2', (delta, full) => {
+        outputEl.textContent = part1Text + '\n\n' + full;
+        progressFill.style.width = (55 + Math.min(25, full.length / 200)) + '%';
+      });
 
       // Stitch
       const fullText = part1Text + '\n\n' + part2Text;
       const wordCount = fullText.split(/\s+/).length;
 
       outputEl.textContent = fullText;
-      outputEl.classList.add('visible');
       document.getElementById('gen-copy-btn').style.display = 'inline-flex';
       document.getElementById('gen-download-btn').style.display = 'inline-flex';
 
@@ -1632,14 +1666,7 @@ DESC 3: [description]`;
         })
       });
 
-      const data = await safeParseResponse(response, 'Metadata');
-
-      if (!response.ok) {
-        const errMsg = data.error?.message || data.error?.code || JSON.stringify(data.error) || `HTTP ${response.status}`;
-        throw new Error('Metadata API error: ' + errMsg);
-      }
-
-      const text = data.choices?.[0]?.message?.content || '';
+      const text = await readSSEStream(response, 'Metadata');
 
       // Parse first title and first desc
       const titleMatch = text.match(/TITLE 1:\s*(.+)/);
