@@ -64,7 +64,7 @@ export default async function handler(req, res) {
     }
 
     const openRouterBody = {
-      model: model || "anthropic/claude-sonnet-4-20250514",
+      model: model || "anthropic/claude-sonnet-4",
       max_tokens: max_tokens || 6000,
       messages,
     };
