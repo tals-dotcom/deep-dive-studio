@@ -67,6 +67,7 @@ export default async function handler(req, res) {
       model: model || "anthropic/claude-sonnet-4",
       max_tokens: max_tokens || 6000,
       messages,
+      stream: true,
     };
 
     const openRouterRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -78,42 +79,50 @@ export default async function handler(req, res) {
       body: JSON.stringify(openRouterBody),
     });
 
-    const rawBody = await openRouterRes.text();
-
-    console.log("[proxy] OpenRouter raw response (first 500 chars):", rawBody.substring(0, 500));
     console.log("[proxy] OpenRouter status:", openRouterRes.status);
 
-    let data;
-    try {
-      data = JSON.parse(rawBody);
-    } catch (parseErr) {
-      console.error("[proxy] OpenRouter returned non-JSON:", rawBody.substring(0, 1000));
-      res.writeHead(502, { ...corsHeaders(origin), "Content-Type": "application/json" });
-      res.end(JSON.stringify({
-        error: "OpenRouter returned non-JSON response",
-        status: openRouterRes.status,
-        body: rawBody.substring(0, 500),
-      }));
+    // If OpenRouter returns an error (non-2xx), read as JSON and forward
+    if (!openRouterRes.ok) {
+      const rawBody = await openRouterRes.text();
+      console.error("[proxy] OpenRouter error:", rawBody.substring(0, 1000));
+      let errorData;
+      try {
+        errorData = JSON.parse(rawBody);
+      } catch {
+        errorData = { error: "OpenRouter returned non-JSON error", body: rawBody.substring(0, 500) };
+      }
+      res.writeHead(openRouterRes.status, {
+        ...corsHeaders(origin),
+        "Content-Type": "application/json",
+      });
+      res.end(JSON.stringify(errorData));
       return;
     }
 
-    console.log("[proxy] OpenRouter parsed response:", JSON.stringify({
-      status: openRouterRes.status,
-      hasChoices: !!data.choices,
-      choicesLength: data.choices?.length,
-      error: data.error,
-      contentLength: data.choices?.[0]?.message?.content?.length,
-    }));
+    // Stream the SSE response back to the client
+    res.writeHead(200, {
+      ...corsHeaders(origin),
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      "Connection": "keep-alive",
+    });
 
-    if (!openRouterRes.ok) {
-      console.error("[proxy] OpenRouter error response:", JSON.stringify(data));
+    const reader = openRouterRes.body.getReader();
+    const decoder = new TextDecoder();
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        res.write(chunk);
+      }
+    } catch (streamErr) {
+      console.error("[proxy] Stream read error:", streamErr.message);
     }
 
-    res.writeHead(openRouterRes.status, {
-      ...corsHeaders(origin),
-      "Content-Type": "application/json",
-    });
-    res.end(JSON.stringify(data));
+    res.end();
+
   } catch (err) {
     console.error("[proxy] Proxy exception:", err.message, err.stack);
     res.writeHead(502, { ...corsHeaders(origin), "Content-Type": "application/json" });
