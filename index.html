@@ -4,9 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Deep Dive Studio — Circles</title>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" crossorigin="anonymous"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Serif+Display&display=swap" rel="stylesheet" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.15/dist/umd/ffmpeg.js" crossorigin="anonymous"></script>
 <style>
   :root {
     --bg: #FAF9F7;
@@ -1303,33 +1305,17 @@
   <div id="panel-audio" class="panel">
     <div class="panel-header">
       <h2>Process Audio</h2>
-      <p>One command to slow down and finalize your deep dive audio. Requires ffmpeg installed on your Mac.</p>
-    </div>
-
-    <div class="card" id="audio-setup-card">
-      <div class="card-label">First time? Install ffmpeg (one-time, 2 minutes)</div>
-      <p style="font-size:13px; color:var(--text-secondary); margin-bottom:10px;">
-        Open Terminal (search "Terminal" in Spotlight) and paste these two commands:
-      </p>
-      <pre style="background:var(--text); color:#e8e5e0; padding:14px 16px; border-radius:var(--radius-sm); font-size:13px; line-height:1.8; overflow-x:auto; margin-bottom:8px;">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-brew install ffmpeg</pre>
-      <p class="form-hint">Already installed? Skip this. Check by typing <code style="background:var(--surface-alt); padding:2px 6px; border-radius:4px;">ffmpeg -version</code> in Terminal.</p>
-      <button class="btn btn-secondary btn-sm" onclick="document.getElementById('audio-setup-card').style.display='none';" style="margin-top:8px;">Got it, hide this</button>
+      <p>Upload your podcast audio, adjust speed, and process it right in the browser — no Terminal needed.</p>
     </div>
 
     <div class="card">
-      <div class="card-label"><span class="step">1</span> Closing Audio File</div>
+      <div class="card-label"><span class="step">1</span> Closing Audio Segment</div>
       <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">
-        This file gets stitched to the end of every deep dive. Download it once to your Desktop — you'll reuse it every time.
+        This closing segment gets stitched to the end of every deep dive automatically. You can also download it separately.
       </p>
       <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-        <button class="btn btn-primary btn-sm" onclick="downloadClosingFile()">Download to Desktop</button>
+        <button class="btn btn-secondary btn-sm" onclick="downloadClosingFile()">Download closing file</button>
         <span style="font-size:12px; color:var(--text-muted);">Emily_Deep_Dive_Closure.mp3 · 302 KB</span>
-      </div>
-      <div id="closing-downloaded" style="display:none; margin-top:10px;">
-        <div class="file-selected">
-          <span>✓</span> <span>Emily_Deep_Dive_Closure.mp3 — should be in your Downloads folder</span>
-        </div>
       </div>
       <audio controls style="margin-top:12px; width:100%; height:36px;" id="closing-preview">
         <source id="closing-audio-src" type="audio/mpeg">
@@ -1340,11 +1326,11 @@ brew install ffmpeg</pre>
       <div class="card-label"><span class="step">2</span> Drop Your NotebookLM File</div>
       <div class="drop-zone" id="drop-podcast-cmd">
         <div class="drop-zone-icon">🎙️</div>
-        <div class="drop-zone-text"><strong>Drop the NotebookLM podcast here</strong> or click to browse<br>This just reads the filename — nothing is processed in the browser</div>
-        <input type="file" accept="audio/*,video/mp4" onchange="handlePodcastForCommand(this)">
+        <div class="drop-zone-text"><strong>Drop the NotebookLM podcast here</strong> or click to browse<br>MP3 or audio file from NotebookLM</div>
+        <input type="file" accept="audio/*,video/mp4" onchange="handlePodcastFile(this)">
       </div>
-      <div class="file-selected" id="podcast-cmd-info" style="display:none">
-        <span>✓</span> <span id="podcast-cmd-name"></span>
+      <div class="file-selected" id="podcast-file-info" style="display:none">
+        <span>✓</span> <span id="podcast-file-name"></span>
       </div>
     </div>
 
@@ -1355,52 +1341,27 @@ brew install ffmpeg</pre>
         <div style="display:flex; align-items:center; gap:12px;">
           <input type="range" id="audio-speed" min="0.75" max="1" step="0.01" value="0.85"
             style="flex:1; accent-color:var(--accent);"
-            oninput="document.getElementById('audio-speed-label').textContent = this.value + '×'; buildSingleCommand();">
+            oninput="document.getElementById('audio-speed-label').textContent = this.value + '×';">
           <span id="audio-speed-label" style="font-weight:600; font-variant-numeric:tabular-nums; min-width:45px;">0.85×</span>
         </div>
         <p class="form-hint">0.85× is the default. Voices stay natural — only the pace changes.</p>
       </div>
-      <div class="form-group">
-        <label for="closing-filename">Closing audio file <span style="color:var(--text-muted)">(on your Desktop)</span></label>
-        <input type="text" id="closing-filename" value="Emily_Deep_Dive_Closure.mp3" oninput="buildSingleCommand()">
-        <p class="form-hint">Change this only if you renamed the closing file.</p>
+    </div>
+
+    <div class="card" id="process-card">
+      <div class="card-label"><span class="step">4</span> Process Audio</div>
+      <button class="btn btn-primary" id="process-btn" onclick="processAudio()" disabled>Process Audio</button>
+      <div id="process-progress" style="display:none; margin-top:14px;">
+        <div class="progress-bar"><div class="progress-fill" id="process-progress-fill" style="width:0%"></div></div>
+        <div class="status-message" id="process-status"></div>
       </div>
-      <div class="form-group">
-        <label>Output filename</label>
-        <input type="text" id="output-filename" readonly style="background:var(--surface-alt); cursor:default;">
-        <p class="form-hint">Auto-generated from your content. The final file will appear on your Desktop.</p>
+      <div id="process-success" style="display:none; margin-top:14px;">
+        <div style="padding:16px 20px; background:#E8F5EE; border:1px solid #B5D9C4; border-radius:var(--radius-sm); margin-bottom:12px; font-size:14px; color:#2D5E42;">Audio processed successfully</div>
+        <button class="btn btn-primary" onclick="downloadProcessedAudio()">Download final audio</button>
+        <audio controls id="process-preview" style="margin-top:12px; width:100%; height:36px;"></audio>
       </div>
     </div>
 
-    <div class="card" id="command-card" style="display:none;">
-      <div class="card-label"><span class="step">3</span> Copy & Run in Terminal</div>
-      <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">
-        Make sure both audio files are on your Desktop. Then copy this command, paste it into Terminal, and press Enter.
-      </p>
-      <div style="position:relative;">
-        <pre id="single-cmd" style="background:var(--text); color:#e8e5e0; padding:16px 16px 40px; border-radius:var(--radius-sm); font-size:13px; line-height:1.7; overflow-x:auto; white-space:pre-wrap; word-break:break-all;"></pre>
-        <button class="btn btn-primary btn-sm" onclick="copyCmd('single-cmd')" style="position:absolute; bottom:10px; right:10px;">Copy Command</button>
-      </div>
-      <p class="form-hint" style="margin-top:10px;">Looks for files in your Downloads folder. The final MP3 will appear on your Desktop.</p>
-    </div>
-
-    <div class="card" id="upload-back-card" style="display:none;">
-      <div class="card-label"><span class="step">5</span> Upload Final Audio to Library</div>
-      <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">
-        Once Terminal is done, drop the final file here to save it to your library.
-      </p>
-      <div class="drop-zone" id="drop-final">
-        <div class="drop-zone-icon">✅</div>
-        <div class="drop-zone-text"><strong>Drop the final audio here</strong> or click to browse<br>This saves the metadata to your library</div>
-        <input type="file" accept="audio/*" onchange="handleFinalUpload(this)">
-      </div>
-      <div id="final-upload-success" style="display:none; margin-top:12px;">
-        <div class="file-selected">
-          <span>✅</span> <span id="final-upload-name"></span>
-        </div>
-        <p style="font-size:13px; color:var(--success); margin-top:6px;">Saved to library! You can find it in the Library tab.</p>
-      </div>
-    </div>
     <div class="step-nav">
       <button class="step-nav-btn prev" onclick="goToStep(2)">&larr; Back</button>
       <span class="step-nav-label">Step 3 of 4</span>
@@ -1758,10 +1719,16 @@ brew install ffmpeg</pre>
     document.getElementById('meta-status').textContent = '';
 
     // Reset audio
-    podcastOriginalName = '';
-    document.getElementById('podcast-cmd-info').style.display = 'none';
-    document.getElementById('command-card').style.display = 'none';
-    document.getElementById('upload-back-card').style.display = 'none';
+    podcastFile = null;
+    processedAudioBlob = null;
+    document.getElementById('podcast-file-info').style.display = 'none';
+    document.getElementById('process-btn').disabled = true;
+    document.getElementById('process-progress').style.display = 'none';
+    document.getElementById('process-success').style.display = 'none';
+    if (document.getElementById('process-preview').src) {
+      URL.revokeObjectURL(document.getElementById('process-preview').src);
+      document.getElementById('process-preview').src = '';
+    }
 
     goToStep(1);
   }
@@ -1817,7 +1784,6 @@ brew install ffmpeg</pre>
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    document.getElementById('closing-downloaded').style.display = 'block';
     showToast('Closing file downloaded');
   }
 
@@ -1827,105 +1793,143 @@ brew install ffmpeg</pre>
     document.getElementById('closing-preview').src = URL.createObjectURL(blob);
   });
 
-  // ========== Audio Command Generator ==========
-  let podcastOriginalName = '';
+  // ========== In-Browser Audio Processing (ffmpeg.wasm) ==========
+  let podcastFile = null;
+  let processedAudioBlob = null;
+  let ffmpegInstance = null;
+  let ffmpegLoaded = false;
 
-  function handlePodcastForCommand(input) {
+  function handlePodcastFile(input) {
     try {
       const file = input.files[0];
       if (!file) return;
-      podcastOriginalName = file.name;
-      document.getElementById('podcast-cmd-info').style.display = 'flex';
-      document.getElementById('podcast-cmd-name').textContent = file.name + ' (' + formatFileSize(file.size) + ')';
-      buildSingleCommand();
+      podcastFile = file;
+      document.getElementById('podcast-file-info').style.display = 'flex';
+      document.getElementById('podcast-file-name').textContent = file.name + ' (' + formatFileSize(file.size) + ')';
+      document.getElementById('process-btn').disabled = false;
+      // Reset any previous processing results
+      document.getElementById('process-progress').style.display = 'none';
+      document.getElementById('process-success').style.display = 'none';
     } catch (err) {
       console.error('Error handling podcast file:', err);
       showToast('Error reading file — try again');
     }
   }
 
-  function buildSingleCommand() {
-    if (!podcastOriginalName) return;
+  async function loadFFmpeg() {
+    if (ffmpegLoaded) return;
+    const { FFmpeg } = FFmpegWASM;
+    const { toBlobURL } = FFmpegUtil;
+    ffmpegInstance = new FFmpeg();
 
-    const speed = document.getElementById('audio-speed').value;
-    const closingName = document.getElementById('closing-filename').value.trim();
-    const outputName = buildFileName() + '.mp3';
+    ffmpegInstance.on('progress', ({ progress }) => {
+      const pct = Math.max(0, Math.min(100, Math.round(progress * 100)));
+      document.getElementById('process-progress-fill').style.width = pct + '%';
+      if (pct > 0) {
+        document.getElementById('process-status').textContent = 'Processing audio... ' + pct + '%';
+      }
+    });
 
-    document.getElementById('output-filename').value = outputName;
-
-    // Single chained command: slow down from Downloads → concat with closing from Downloads → output to Desktop → cleanup temp
-    const cmd = `ffmpeg -i ~/Downloads/"${podcastOriginalName}" -filter:a "atempo=${speed}" -y ~/Desktop/"_temp_slowed.mp3" && ffmpeg -i ~/Desktop/"_temp_slowed.mp3" -i ~/Downloads/"${closingName}" -filter_complex "[0:a][1:a]concat=n=2:v=0:a=1[a]" -map "[a]" -y ~/Desktop/"${outputName}" && rm ~/Desktop/"_temp_slowed.mp3" && echo "✅ Done! File saved to Desktop: ${outputName}"`;
-
-    document.getElementById('single-cmd').textContent = cmd;
-    document.getElementById('command-card').style.display = 'block';
-    document.getElementById('upload-back-card').style.display = 'block';
+    const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd';
+    await ffmpegInstance.load({
+      coreURL: await toBlobURL(baseURL + '/ffmpeg-core.js', 'text/javascript'),
+      wasmURL: await toBlobURL(baseURL + '/ffmpeg-core.wasm', 'application/wasm'),
+    });
+    ffmpegLoaded = true;
   }
 
-  function handleFinalUpload(input) {
+  async function processAudio() {
+    if (!podcastFile) { showToast('Upload a podcast file first'); return; }
+
+    const btn = document.getElementById('process-btn');
+    const progressEl = document.getElementById('process-progress');
+    const statusEl = document.getElementById('process-status');
+    const successEl = document.getElementById('process-success');
+
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+    progressEl.style.display = 'block';
+    successEl.style.display = 'none';
+    document.getElementById('process-progress-fill').style.width = '0%';
+
     try {
-      const file = input.files[0];
-      if (!file) return;
+      // Load ffmpeg engine (first time ~25MB download)
+      if (!ffmpegLoaded) {
+        statusEl.textContent = 'Loading ffmpeg engine (~25MB, first time only)...';
+        await loadFFmpeg();
+      }
 
-      const topic = document.getElementById('gen-topic').value || 'Untitled Deep Dive';
-      const category = document.getElementById('gen-category').value || '';
-      const content = document.getElementById('meta-content').value || '';
+      statusEl.textContent = 'Reading audio files...';
+      const { fetchFile } = FFmpegUtil;
 
-      // Show immediate feedback
-      document.getElementById('final-upload-success').style.display = 'block';
-      document.getElementById('final-upload-name').textContent = file.name + ' · ' + formatFileSize(file.size) + ' · Reading audio...';
+      // Write podcast file
+      const inputExt = podcastFile.name.split('.').pop() || 'mp3';
+      await ffmpegInstance.writeFile('input.' + inputExt, await fetchFile(podcastFile));
 
-      // Get duration from audio file
-      const audio = new Audio();
-      const objectUrl = URL.createObjectURL(file);
-      audio.src = objectUrl;
+      // Decode closing segment from embedded base64
+      const closingData = Uint8Array.from(atob(CLOSING_FILE_B64), c => c.charCodeAt(0));
+      await ffmpegInstance.writeFile('closing.mp3', closingData);
 
-      const saveFn = async (durationMin) => {
-        const entry = {
-          id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
-          title: document.getElementById('meta-title').value || topic,
-          description: document.getElementById('meta-desc').value || '',
-          category: category,
-          duration: durationMin ? (durationMin + ' min') : 'Unknown',
-          fileName: file.name,
-          fileSize: formatFileSize(file.size),
-          hasAudio: true,
-          createdAt: new Date().toISOString(),
-          hasContent: !!content
-        };
+      const speed = document.getElementById('audio-speed').value;
+      statusEl.textContent = 'Processing audio... this may take 30-60 seconds';
+      document.getElementById('process-progress-fill').style.width = '5%';
 
-        try {
-          const docRef = await db.collection(COLLECTION).add(entry);
-          entry._docId = docRef.id;
-          library.unshift(entry);
-        } catch (err) {
-          console.error('Failed to save to Firestore:', err);
-        }
+      // Run ffmpeg: slow down + concatenate with closing segment
+      const result = await ffmpegInstance.exec([
+        '-i', 'input.' + inputExt,
+        '-i', 'closing.mp3',
+        '-filter_complex', '[0:a]atempo=' + speed + '[a0];[a0][1:a]concat=n=2:v=0:a=1[out]',
+        '-map', '[out]',
+        '-y', 'output.wav'
+      ]);
 
-        if (durationMin) document.getElementById('meta-duration').value = durationMin + ' min';
+      if (result !== 0) {
+        throw new Error('ffmpeg processing failed (exit code ' + result + ')');
+      }
 
-        document.getElementById('final-upload-name').textContent = file.name + (durationMin ? (' · ' + durationMin + ' min') : '') + ' · ' + formatFileSize(file.size) + ' · Saved to library';
-        URL.revokeObjectURL(objectUrl);
-        showToast('Saved to library!');
-      };
+      // Read output
+      const outputData = await ffmpegInstance.readFile('output.wav');
+      processedAudioBlob = new Blob([outputData.buffer], { type: 'audio/wav' });
 
-      audio.addEventListener('loadedmetadata', () => {
-        const durationMin = Math.round(audio.duration / 60);
-        saveFn(durationMin);
-      });
+      // Clean up ffmpeg filesystem
+      await ffmpegInstance.deleteFile('input.' + inputExt);
+      await ffmpegInstance.deleteFile('closing.mp3');
+      await ffmpegInstance.deleteFile('output.wav');
 
-      // Fallback if loadedmetadata doesn't fire within 3 seconds
-      setTimeout(() => {
-        if (!audio.duration || isNaN(audio.duration)) {
-          saveFn(null);
-        }
-      }, 3000);
+      // Show success
+      progressEl.style.display = 'none';
+      successEl.style.display = 'block';
+      const previewUrl = URL.createObjectURL(processedAudioBlob);
+      document.getElementById('process-preview').src = previewUrl;
+
+      btn.textContent = 'Re-process Audio';
+      btn.disabled = false;
+      showToast('Audio processed successfully');
+
     } catch (err) {
-      console.error('Error handling final upload:', err);
-      showToast('Error uploading file — ' + err.message);
+      console.error('Audio processing error:', err);
+      statusEl.textContent = 'Error: ' + err.message;
+      document.getElementById('process-progress-fill').style.width = '0%';
+      btn.textContent = 'Process Audio';
+      btn.disabled = false;
     }
   }
 
-  // Re-enable drop zones for this tab
+  function downloadProcessedAudio() {
+    if (!processedAudioBlob) { showToast('No processed audio to download'); return; }
+    const outputName = buildFileName() + '.wav';
+    const url = URL.createObjectURL(processedAudioBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = outputName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast('Downloading ' + outputName);
+  }
+
+  // Re-enable drop zones
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.drop-zone').forEach(zone => {
       zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
