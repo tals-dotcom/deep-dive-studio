@@ -734,6 +734,249 @@
     text-align: center;
     flex: 1;
   }
+
+  /* Step progress indicator in header */
+  .step-progress {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .step-progress-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 4px 2px;
+    user-select: none;
+    transition: opacity 0.2s;
+  }
+
+  .step-progress-item.disabled {
+    cursor: default;
+    opacity: 0.5;
+  }
+
+  .step-progress-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.3s;
+    flex-shrink: 0;
+  }
+
+  .step-progress-item.inactive .step-progress-circle {
+    background: #D4CEC8;
+    color: white;
+  }
+
+  .step-progress-item.active .step-progress-circle {
+    background: var(--accent);
+    color: white;
+  }
+
+  .step-progress-item.completed .step-progress-circle {
+    background: #4A8C6F;
+    color: white;
+  }
+
+  .step-progress-text {
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .step-progress-item.inactive .step-progress-text { color: var(--text-muted); }
+  .step-progress-item.active .step-progress-text { color: var(--text); font-weight: 600; }
+  .step-progress-item.completed .step-progress-text { color: #4A8C6F; }
+
+  .step-progress-connector {
+    width: 32px;
+    height: 2px;
+    margin: 0 4px;
+    transition: background 0.3s;
+  }
+
+  .step-progress-connector.done { background: #4A8C6F; }
+  .step-progress-connector.pending { background: #D4CEC8; }
+
+  .header-library-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .header-library-link:hover {
+    background: var(--surface-alt);
+    color: var(--text);
+  }
+
+  /* Success banner */
+  .success-banner {
+    display: none;
+    padding: 16px 20px;
+    background: #E8F5EE;
+    border: 1px solid #B5D9C4;
+    border-radius: var(--radius-sm);
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #2D5E42;
+    line-height: 1.5;
+  }
+
+  .success-banner.visible { display: flex; align-items: flex-start; gap: 10px; }
+
+  .success-banner-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    line-height: 1.4;
+  }
+
+  /* Collapsed output preview */
+  .output-preview {
+    position: relative;
+    max-height: 120px;
+    overflow: hidden;
+    display: none;
+  }
+
+  .output-preview.visible { display: block; }
+
+  .output-preview .output-box {
+    max-height: none;
+    margin-top: 0;
+  }
+
+  .output-preview-fade {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(transparent, var(--surface));
+    pointer-events: none;
+  }
+
+  /* Green success button variant */
+  .btn-success {
+    background: #4A8C6F;
+    color: white;
+  }
+
+  .btn-success:hover { background: #3D7A5F; }
+
+  /* Library overlay */
+  .library-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 150;
+    background: var(--bg);
+    overflow-y: auto;
+  }
+
+  .library-overlay.visible { display: block; }
+
+  .library-overlay-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .library-overlay-header h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    font-weight: 400;
+  }
+
+  .library-overlay-content {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  /* NotebookLM handoff sub-steps */
+  .nlm-substep {
+    display: flex;
+    gap: 16px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nlm-substep:last-child { border-bottom: none; }
+
+  .nlm-substep-number {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .nlm-substep-content { flex: 1; }
+
+  .nlm-substep-title {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+
+  .nlm-substep-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+
+  .nlm-instructions-box {
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+  }
+
+  /* Hide form when generation done */
+  .gen-form-collapsed { display: none; }
+
+  @media (max-width: 640px) {
+    .step-progress { display: none; }
+    .header-library-link span:last-child { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -743,28 +986,62 @@
     <div class="logo">C</div>
     <h1>Deep Dive Studio <span>by Circles</span></h1>
   </div>
-  <nav class="tabs">
-    <button class="tab active" onclick="switchTab('generate')">Generate Content</button>
-    <button class="tab" onclick="switchTab('audio')">Process Audio</button>
-    <button class="tab" onclick="switchTab('metadata')">Room Info</button>
-    <button class="tab" onclick="switchTab('library')">Library</button>
+  <nav class="step-progress" id="step-progress">
+    <div class="step-progress-item active" data-step="1" onclick="goToStep(1)">
+      <div class="step-progress-circle">1</div>
+      <span class="step-progress-text">Generate</span>
+    </div>
+    <div class="step-progress-connector pending"></div>
+    <div class="step-progress-item inactive disabled" data-step="2" onclick="goToStep(2)">
+      <div class="step-progress-circle">2</div>
+      <span class="step-progress-text">NotebookLM</span>
+    </div>
+    <div class="step-progress-connector pending"></div>
+    <div class="step-progress-item inactive disabled" data-step="3" onclick="goToStep(3)">
+      <div class="step-progress-circle">3</div>
+      <span class="step-progress-text">Process Audio</span>
+    </div>
+    <div class="step-progress-connector pending"></div>
+    <div class="step-progress-item inactive disabled" data-step="4" onclick="goToStep(4)">
+      <div class="step-progress-circle">4</div>
+      <span class="step-progress-text">Publish</span>
+    </div>
   </nav>
-  <div id="sync-status" style="font-size:11px; color:var(--text-muted); padding:0 16px 0 0; display:flex; align-items:center; gap:5px;">
-    <span id="sync-dot" style="width:7px; height:7px; border-radius:50%; background:var(--warning); display:inline-block;"></span>
-    <span id="sync-text">Connecting...</span>
+  <div style="display:flex; align-items:center; gap:12px;">
+    <button class="header-library-link" onclick="toggleLibrary()">
+      <span>Library</span>
+    </button>
+    <div id="sync-status" style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:5px;">
+      <span id="sync-dot" style="width:7px; height:7px; border-radius:50%; background:var(--warning); display:inline-block;"></span>
+      <span id="sync-text">Connecting...</span>
+    </div>
   </div>
 </header>
 
 <main class="main">
 
-  <!-- TAB 1: Generate Content -->
+  <!-- STEP 1: Generate Content -->
   <div id="panel-generate" class="panel active">
     <div class="panel-header">
       <h2>Generate Content</h2>
       <p>Create article content for a deep dive session. Copy the output to NotebookLM to generate the podcast audio.</p>
     </div>
 
-    <div class="card">
+    <div class="success-banner" id="gen-success-banner">
+      <span class="success-banner-icon">&#10003;</span>
+      <div><strong id="gen-success-wordcount">0 words generated.</strong> Content is ready — proceed to the next step to create your podcast audio.</div>
+    </div>
+
+    <div class="output-preview" id="gen-output-preview">
+      <div style="margin-bottom:10px;">
+        <button class="btn btn-secondary btn-sm" onclick="copyContent()">Copy to clipboard</button>
+        <button class="btn btn-secondary btn-sm" onclick="downloadArticle()">Download as .txt</button>
+      </div>
+      <div class="output-box visible" id="gen-output-preview-text" style="display:block; max-height:none;"></div>
+      <div class="output-preview-fade"></div>
+    </div>
+
+    <div id="gen-form-section" class="card">
       <div class="card-label"><span class="step">1</span> Session Details</div>
       <div class="form-group">
         <label for="gen-topic-select">Select a topic</label>
@@ -934,11 +1211,66 @@
     <div class="step-nav">
       <div></div>
       <span class="step-nav-label">Step 1 of 4</span>
-      <button class="step-nav-btn next" onclick="goToTab('audio')">Process Audio →</button>
+      <button class="step-nav-btn next" id="gen-next-btn" onclick="goToStep(2)" disabled>Next: NotebookLM &rarr;</button>
     </div>
   </div>
 
-  <!-- TAB 2: Process Audio -->
+  <!-- STEP 2: NotebookLM Handoff -->
+  <div id="panel-notebooklm" class="panel">
+    <div class="panel-header">
+      <h2>NotebookLM</h2>
+      <p>Use NotebookLM to convert your article into a podcast episode. Follow these 4 sub-steps.</p>
+    </div>
+
+    <div class="card">
+      <div class="nlm-substep">
+        <div class="nlm-substep-number">1</div>
+        <div class="nlm-substep-content">
+          <div class="nlm-substep-title">Download the article</div>
+          <div class="nlm-substep-desc">Save the generated content as a .txt file to upload to NotebookLM.</div>
+          <button class="btn btn-primary btn-sm" onclick="downloadArticle()">Download article (.txt)</button>
+        </div>
+      </div>
+      <div class="nlm-substep">
+        <div class="nlm-substep-number">2</div>
+        <div class="nlm-substep-content">
+          <div class="nlm-substep-title">Open NotebookLM</div>
+          <div class="nlm-substep-desc">Create a new notebook and upload your .txt file as a source.</div>
+          <a href="https://notebooklm.google.com/" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">Open NotebookLM &#8599;</a>
+        </div>
+      </div>
+      <div class="nlm-substep">
+        <div class="nlm-substep-number">3</div>
+        <div class="nlm-substep-content">
+          <div class="nlm-substep-title">Set custom instructions</div>
+          <div class="nlm-substep-desc">In NotebookLM's Audio Overview settings, paste these custom instructions before generating audio.</div>
+          <div class="nlm-instructions-box" id="nlm-instructions-box">&#8226; Vocal demeanor &#8211; Maintain a calm, grounded, and steady tone. Be professional yet soothing, avoiding extremes such as being overly enthusiastic, overly casual, or overly clinical. The voice should carry gentle authority while still feeling safe and approachable.
+&#8226; Speak directly to members &#8211; Frame every insight, reflection, or question as if you&#8217;re talking to the Circles listeners here and now, not to the &#8220;source&#8221; of the content.
+&#8226; Make it human and relatable &#8211; Translate ideas into warm, conversational language. At key moments, invite members to drop an emoji if something resonates to help them express without words.
+&#8226; Encourage engagement &#8211; Instead of analyzing the text itself, draw out feelings, reflections, and lived experiences from the listeners, weaving their voices and reactions (including emojis) into the flow.
+&#8226; Therapeutic tone &#8211; Keep the style calm, validating, and gently paced, like a supportive guide. Aim for warmth and relaxation in every word, so the listeners feel soothed, safe, and cared for as they follow along.
+&#8226; Draw attention to moments where listeners might resonate emotionally, and invite them to pause or drop an emoji if it speaks to them.
+&#8226; Weave in reflections that normalize the listeners&#8217; experiences, so they feel seen and not alone.</div>
+          <button class="btn btn-primary btn-sm" onclick="copyNlmInstructionsFromStep2()">Copy instructions</button>
+        </div>
+      </div>
+      <div class="nlm-substep">
+        <div class="nlm-substep-number">4</div>
+        <div class="nlm-substep-content">
+          <div class="nlm-substep-title">Generate &amp; download the audio</div>
+          <div class="nlm-substep-desc">Click "Generate" in NotebookLM's Audio Overview, wait for it to finish, then download the audio file. You'll upload it in the next step.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-nav">
+      <button class="step-nav-btn prev" onclick="goToStep(1)">&larr; Back to content</button>
+      <span class="step-nav-label">Step 2 of 4</span>
+      <button class="step-nav-btn next btn-success" onclick="goToStep(3)">I have the audio &rarr; Process it</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Process Audio -->
   <div id="panel-audio" class="panel">
     <div class="panel-header">
       <h2>Process Audio</h2>
@@ -992,12 +1324,12 @@ brew install ffmpeg</pre>
       <div class="form-group">
         <label>Playback speed</label>
         <div style="display:flex; align-items:center; gap:12px;">
-          <input type="range" id="audio-speed" min="0.75" max="1" step="0.01" value="0.82"
+          <input type="range" id="audio-speed" min="0.75" max="1" step="0.01" value="0.85"
             style="flex:1; accent-color:var(--accent);"
             oninput="document.getElementById('audio-speed-label').textContent = this.value + '×'; buildSingleCommand();">
-          <span id="audio-speed-label" style="font-weight:600; font-variant-numeric:tabular-nums; min-width:45px;">0.82×</span>
+          <span id="audio-speed-label" style="font-weight:600; font-variant-numeric:tabular-nums; min-width:45px;">0.85×</span>
         </div>
-        <p class="form-hint">0.82× is the default. Voices stay natural — only the pace changes.</p>
+        <p class="form-hint">0.85× is the default. Voices stay natural — only the pace changes.</p>
       </div>
       <div class="form-group">
         <label for="closing-filename">Closing audio file <span style="color:var(--text-muted)">(on your Desktop)</span></label>
@@ -1041,16 +1373,16 @@ brew install ffmpeg</pre>
       </div>
     </div>
     <div class="step-nav">
-      <button class="step-nav-btn prev" onclick="goToTab('generate')">← Generate Content</button>
-      <span class="step-nav-label">Step 2 of 4</span>
-      <button class="step-nav-btn next" onclick="goToTab('metadata')">Room Info →</button>
+      <button class="step-nav-btn prev" onclick="goToStep(2)">&larr; Back</button>
+      <span class="step-nav-label">Step 3 of 4</span>
+      <button class="step-nav-btn next btn-success" onclick="goToStep(4)">Next: Publish &rarr;</button>
     </div>
   </div>
 
-  <!-- TAB 3: Room Info -->
+  <!-- STEP 4: Publish -->
   <div id="panel-metadata" class="panel">
     <div class="panel-header">
-      <h2>Room Info</h2>
+      <h2>Publish</h2>
       <p>Generate or write the title and description for this deep dive session, then save to the library.</p>
     </div>
 
@@ -1102,19 +1434,21 @@ brew install ffmpeg</pre>
       <div class="status-message" id="save-status"></div>
     </div>
     <div class="step-nav">
-      <button class="step-nav-btn prev" onclick="goToTab('audio')">← Process Audio</button>
-      <span class="step-nav-label">Step 3 of 4</span>
-      <button class="step-nav-btn next" onclick="goToTab('library')">Library →</button>
+      <button class="step-nav-btn prev" onclick="goToStep(3)">&larr; Back</button>
+      <span class="step-nav-label">Step 4 of 4</span>
+      <button class="step-nav-btn next" onclick="startNewEpisode()">Start new episode</button>
     </div>
   </div>
 
-  <!-- TAB 4: Library -->
-  <div id="panel-library" class="panel">
-    <div class="panel-header">
-      <h2>Content Library</h2>
-      <p>All deep dive sessions ready for deployment.</p>
-    </div>
+</main>
 
+<!-- Library Overlay (accessible from any step) -->
+<div class="library-overlay" id="library-overlay">
+  <div class="library-overlay-header">
+    <h2>Content Library</h2>
+    <button class="btn btn-secondary btn-sm" onclick="toggleLibrary()">&larr; Back to workflow</button>
+  </div>
+  <div class="library-overlay-content">
     <div class="library-toolbar">
       <div>
         <select id="lib-filter" onchange="renderLibrary()" style="padding:8px 12px; font-size:13px; width:auto;">
@@ -1135,14 +1469,8 @@ brew install ffmpeg</pre>
         <p style="font-size:13px; margin-top:4px;">Generate content and save it here to build your deep dive collection.</p>
       </div>
     </div>
-    <div class="step-nav">
-      <button class="step-nav-btn prev" onclick="goToTab('metadata')">← Room Info</button>
-      <span class="step-nav-label">Step 4 of 4</span>
-      <div></div>
-    </div>
   </div>
-
-</main>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -1247,30 +1575,129 @@ brew install ffmpeg</pre>
     'psychoeducation': 'Psychoeducation'
   };
 
-  // ========== Tab Switching ==========
-  const TAB_ORDER = ['generate', 'audio', 'metadata', 'library'];
+  // ========== Step Navigation ==========
+  const STEP_PANELS = ['generate', 'notebooklm', 'audio', 'metadata'];
+  let currentStep = 1;
+  let completedSteps = new Set();
+  let libraryOpen = false;
 
-  function switchTab(tab) {
-    activateTab(tab);
-    // Highlight the clicked button
-    if (event && event.target && event.target.classList) event.target.classList.add('active');
-  }
+  function goToStep(n) {
+    // Can navigate to completed steps, current step, or next available step
+    if (n > currentStep && !completedSteps.has(n) && !completedSteps.has(n - 1) && n !== currentStep + 1) return;
+    if (n > currentStep && n > 1 && !completedSteps.has(n - 1) && n !== currentStep) return;
 
-  function goToTab(tab) {
-    activateTab(tab);
+    // Close library if open
+    if (libraryOpen) toggleLibrary();
+
+    currentStep = n;
+    // Show correct panel
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    const panelId = 'panel-' + STEP_PANELS[n - 1];
+    document.getElementById(panelId).classList.add('active');
+
+    updateStepProgress();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function activateTab(tab) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('panel-' + tab).classList.add('active');
+  function updateStepProgress() {
+    const items = document.querySelectorAll('.step-progress-item');
+    const connectors = document.querySelectorAll('.step-progress-connector');
 
-    const idx = TAB_ORDER.indexOf(tab);
-    const tabs = document.querySelectorAll('.tab');
-    if (idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
+    items.forEach((item, idx) => {
+      const stepNum = idx + 1;
+      item.classList.remove('active', 'inactive', 'completed', 'disabled');
 
-    if (tab === 'library') renderLibrary();
+      if (completedSteps.has(stepNum)) {
+        item.classList.add('completed');
+        item.querySelector('.step-progress-circle').innerHTML = '&#10003;';
+      } else if (stepNum === currentStep) {
+        item.classList.add('active');
+        item.querySelector('.step-progress-circle').textContent = stepNum;
+      } else {
+        item.classList.add('inactive', 'disabled');
+        item.querySelector('.step-progress-circle').textContent = stepNum;
+      }
+
+      // Allow clicking completed steps or the current step
+      if (completedSteps.has(stepNum) || stepNum === currentStep) {
+        item.classList.remove('disabled');
+      }
+    });
+
+    connectors.forEach((conn, idx) => {
+      conn.classList.remove('done', 'pending');
+      conn.classList.add(completedSteps.has(idx + 1) ? 'done' : 'pending');
+    });
+  }
+
+  function completeStep(n) {
+    completedSteps.add(n);
+    updateStepProgress();
+  }
+
+  function toggleLibrary() {
+    libraryOpen = !libraryOpen;
+    document.getElementById('library-overlay').classList.toggle('visible', libraryOpen);
+    if (libraryOpen) renderLibrary();
+  }
+
+  function startNewEpisode() {
+    currentStep = 1;
+    completedSteps.clear();
+
+    // Reset form fields
+    document.getElementById('gen-topic-select').value = '';
+    document.getElementById('gen-topic').value = '';
+    document.getElementById('gen-angle').value = '';
+    document.getElementById('gen-output').textContent = '';
+    document.getElementById('gen-output').classList.remove('visible');
+    document.getElementById('gen-copy-btn').style.display = 'none';
+    document.getElementById('gen-download-btn').style.display = 'none';
+    document.getElementById('gen-status').textContent = '';
+    document.getElementById('gen-progress').classList.remove('active');
+    document.getElementById('gen-success-banner').classList.remove('visible');
+    document.getElementById('gen-output-preview').classList.remove('visible');
+    document.getElementById('gen-form-section').classList.remove('gen-form-collapsed');
+    document.getElementById('gen-next-btn').disabled = true;
+    document.getElementById('gen-next-btn').classList.remove('btn-success');
+    document.getElementById('nlm-reminder').classList.remove('visible');
+
+    // Reset metadata
+    document.getElementById('meta-title').value = '';
+    document.getElementById('meta-desc').value = '';
+    document.getElementById('meta-content').value = '';
+    document.getElementById('meta-duration').value = '';
+    document.getElementById('save-status').textContent = '';
+    document.getElementById('meta-status').textContent = '';
+
+    // Reset audio
+    podcastOriginalName = '';
+    document.getElementById('podcast-cmd-info').style.display = 'none';
+    document.getElementById('command-card').style.display = 'none';
+    document.getElementById('upload-back-card').style.display = 'none';
+
+    goToStep(1);
+  }
+
+  // Called after content generation completes successfully
+  function showGenerationSuccess(wordCount) {
+    // Show success banner
+    document.getElementById('gen-success-wordcount').textContent = wordCount.toLocaleString() + ' words generated.';
+    document.getElementById('gen-success-banner').classList.add('visible');
+
+    // Collapse form, show preview
+    document.getElementById('gen-form-section').classList.add('gen-form-collapsed');
+    document.querySelectorAll('#panel-generate > .card:not(#gen-form-section)').forEach(c => c.classList.add('gen-form-collapsed'));
+    const previewText = document.getElementById('gen-output').textContent;
+    document.getElementById('gen-output-preview-text').textContent = previewText;
+    document.getElementById('gen-output-preview').classList.add('visible');
+
+    // Enable + green the next button
+    document.getElementById('gen-next-btn').disabled = false;
+    document.getElementById('gen-next-btn').classList.add('btn-success');
+
+    // Mark step 1 complete
+    completeStep(1);
   }
 
   // ========== File Handling (for future use) ==========
@@ -1317,12 +1744,17 @@ brew install ffmpeg</pre>
   let podcastOriginalName = '';
 
   function handlePodcastForCommand(input) {
-    const file = input.files[0];
-    if (!file) return;
-    podcastOriginalName = file.name;
-    document.getElementById('podcast-cmd-info').style.display = 'flex';
-    document.getElementById('podcast-cmd-name').textContent = file.name + ' (' + formatFileSize(file.size) + ')';
-    buildSingleCommand();
+    try {
+      const file = input.files[0];
+      if (!file) return;
+      podcastOriginalName = file.name;
+      document.getElementById('podcast-cmd-info').style.display = 'flex';
+      document.getElementById('podcast-cmd-name').textContent = file.name + ' (' + formatFileSize(file.size) + ')';
+      buildSingleCommand();
+    } catch (err) {
+      console.error('Error handling podcast file:', err);
+      showToast('Error reading file — try again');
+    }
   }
 
   function buildSingleCommand() {
@@ -1359,7 +1791,7 @@ brew install ffmpeg</pre>
       const entry = {
         id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
         title: document.getElementById('meta-title').value || topic,
-        description: document.getElementById('meta-description').value || '',
+        description: document.getElementById('meta-desc').value || '',
         category: category,
         duration: durationMin + ' min',
         fileName: file.name,
@@ -1520,9 +1952,9 @@ brew install ffmpeg</pre>
 
       progressFill.style.width = '100%';
       stopLoadingTimer('gen');
-      statusEl.textContent = 'Done — ' + wordCount.toLocaleString() + ' words generated. Download as .txt and upload to NotebookLM.';
+      statusEl.textContent = 'Done — ' + wordCount.toLocaleString() + ' words generated.';
       showToast(wordCount.toLocaleString() + ' words generated');
-      showNlmReminder();
+      showGenerationSuccess(wordCount);
 
     } catch (err) {
       stopLoadingTimer('gen');
@@ -1627,6 +2059,19 @@ brew install ffmpeg</pre>
 
   function showNlmReminder() {
     document.getElementById('nlm-reminder').classList.add('visible');
+  }
+
+  function copyNlmInstructionsFromStep2() {
+    const text = document.getElementById('nlm-instructions-box').textContent;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => showToast('NotebookLM instructions copied')).catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    } catch (e) {
+      fallbackCopy(text);
+    }
   }
 
   // ========== Metadata Generation ==========
@@ -1913,9 +2358,9 @@ DESC 3: [description]`;
     const category = document.getElementById('gen-category').value;
     document.getElementById('meta-category').value = category;
 
-    document.getElementById('gen-status').textContent = 'Content loaded — ' + wordCount.toLocaleString() + ' words. Download as .txt and upload to NotebookLM.';
+    document.getElementById('gen-status').textContent = 'Content loaded — ' + wordCount.toLocaleString() + ' words.';
     showToast(wordCount.toLocaleString() + ' words loaded');
-    showNlmReminder();
+    showGenerationSuccess(wordCount);
   }
 
   // ========== Prompt Templates ==========
