@@ -1148,7 +1148,9 @@ brew install ffmpeg</pre>
 
 <script>
   // ========== Config ==========
-  const ANTHROPIC_PROXY_URL = "https://deep-dive-studio.vercel.app/api/anthropic";
+  const ANTHROPIC_PROXY_URL = location.hostname.endsWith('.vercel.app')
+    ? '/api/anthropic'
+    : 'https://deep-dive-studio.vercel.app/api/anthropic';
 
   // ========== State ==========
   let closingFile = null;
