@@ -1152,6 +1152,15 @@ brew install ffmpeg</pre>
     ? '/api/anthropic'
     : 'https://deep-dive-studio.vercel.app/api/anthropic';
 
+  async function safeParseResponse(response, label) {
+    const text = await response.text();
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      throw new Error(label + ' returned non-JSON (HTTP ' + response.status + '): ' + text.substring(0, 300));
+    }
+  }
+
   // ========== State ==========
   let closingFile = null;
   let podcastFile = null;
@@ -1425,7 +1434,7 @@ brew install ffmpeg</pre>
       });
 
       progressFill.style.width = '40%';
-      const data1 = await response1.json();
+      const data1 = await safeParseResponse(response1, 'Part 1');
 
       if (!response1.ok) {
         const errMsg = data1.error?.message || data1.error?.code || JSON.stringify(data1.error) || `HTTP ${response1.status}`;
@@ -1453,7 +1462,7 @@ brew install ffmpeg</pre>
       });
 
       progressFill.style.width = '80%';
-      const data2 = await response2.json();
+      const data2 = await safeParseResponse(response2, 'Part 2');
 
       if (!response2.ok) {
         const errMsg = data2.error?.message || data2.error?.code || JSON.stringify(data2.error) || `HTTP ${response2.status}`;
@@ -1623,7 +1632,7 @@ DESC 3: [description]`;
         })
       });
 
-      const data = await response.json();
+      const data = await safeParseResponse(response, 'Metadata');
 
       if (!response.ok) {
         const errMsg = data.error?.message || data.error?.code || JSON.stringify(data.error) || `HTTP ${response.status}`;

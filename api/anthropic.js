@@ -78,9 +78,26 @@ export default async function handler(req, res) {
       body: JSON.stringify(openRouterBody),
     });
 
-    const data = await openRouterRes.json();
+    const rawBody = await openRouterRes.text();
 
-    console.log("[proxy] OpenRouter response:", JSON.stringify({
+    console.log("[proxy] OpenRouter raw response (first 500 chars):", rawBody.substring(0, 500));
+    console.log("[proxy] OpenRouter status:", openRouterRes.status);
+
+    let data;
+    try {
+      data = JSON.parse(rawBody);
+    } catch (parseErr) {
+      console.error("[proxy] OpenRouter returned non-JSON:", rawBody.substring(0, 1000));
+      res.writeHead(502, { ...corsHeaders(origin), "Content-Type": "application/json" });
+      res.end(JSON.stringify({
+        error: "OpenRouter returned non-JSON response",
+        status: openRouterRes.status,
+        body: rawBody.substring(0, 500),
+      }));
+      return;
+    }
+
+    console.log("[proxy] OpenRouter parsed response:", JSON.stringify({
       status: openRouterRes.status,
       hasChoices: !!data.choices,
       choicesLength: data.choices?.length,
