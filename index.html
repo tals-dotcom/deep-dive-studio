@@ -1578,6 +1578,9 @@
   // ========== State ==========
   let closingFile = null;
   let podcastFile = null;
+  let processedAudioBlob = null;
+  let ffmpegInstance = null;
+  let ffmpegLoaded = false;
   // ========== Firebase Setup ==========
   firebase.initializeApp({
     apiKey: "AIzaSyA8lTTQ7W9x7_EMsX1WauK8ySPTZLhCet8",
@@ -1794,10 +1797,6 @@
   });
 
   // ========== In-Browser Audio Processing (ffmpeg.wasm) ==========
-  let podcastFile = null;
-  let processedAudioBlob = null;
-  let ffmpegInstance = null;
-  let ffmpegLoaded = false;
 
   function handlePodcastFile(input) {
     try {
