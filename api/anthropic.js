@@ -33,15 +33,15 @@ export default async function handler(req, res) {
     return;
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     res.writeHead(500, { ...corsHeaders(origin), "Content-Type": "application/json" });
-    res.end(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }));
+    res.end(JSON.stringify({ error: "OPENROUTER_API_KEY not configured" }));
     return;
   }
 
   try {
-    const { model, max_tokens, system, messages } = req.body;
+    const { model, max_tokens, messages } = req.body;
 
     if (!messages || !Array.isArray(messages)) {
       res.writeHead(400, { ...corsHeaders(origin), "Content-Type": "application/json" });
@@ -49,29 +49,24 @@ export default async function handler(req, res) {
       return;
     }
 
-    const anthropicBody = {
-      model: model || "claude-sonnet-4-20250514",
+    const openRouterBody = {
+      model: model || "anthropic/claude-sonnet-4-20250514",
       max_tokens: max_tokens || 6000,
       messages,
     };
 
-    if (system) {
-      anthropicBody.system = system;
-    }
-
-    const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
+    const openRouterRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
+        "Authorization": `Bearer ${apiKey}`,
       },
-      body: JSON.stringify(anthropicBody),
+      body: JSON.stringify(openRouterBody),
     });
 
-    const data = await anthropicRes.json();
+    const data = await openRouterRes.json();
 
-    res.writeHead(anthropicRes.status, {
+    res.writeHead(openRouterRes.status, {
       ...corsHeaders(origin),
       "Content-Type": "application/json",
     });
