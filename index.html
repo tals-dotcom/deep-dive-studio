@@ -1779,50 +1779,67 @@ brew install ffmpeg</pre>
   }
 
   function handleFinalUpload(input) {
-    const file = input.files[0];
-    if (!file) return;
+    try {
+      const file = input.files[0];
+      if (!file) return;
 
-    const topic = document.getElementById('gen-topic').value || 'Untitled Deep Dive';
-    const category = document.getElementById('gen-category').value || '';
-    const content = document.getElementById('meta-content').value || '';
+      const topic = document.getElementById('gen-topic').value || 'Untitled Deep Dive';
+      const category = document.getElementById('gen-category').value || '';
+      const content = document.getElementById('meta-content').value || '';
 
-    // Get duration from audio file
-    const audio = new Audio();
-    audio.src = URL.createObjectURL(file);
-    audio.addEventListener('loadedmetadata', async () => {
-      const durationMin = Math.round(audio.duration / 60);
+      // Show immediate feedback
+      document.getElementById('final-upload-success').style.display = 'block';
+      document.getElementById('final-upload-name').textContent = file.name + ' · ' + formatFileSize(file.size) + ' · Reading audio...';
 
-      const entry = {
-        id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
-        title: document.getElementById('meta-title').value || topic,
-        description: document.getElementById('meta-desc').value || '',
-        category: category,
-        duration: durationMin + ' min',
-        fileName: file.name,
-        fileSize: formatFileSize(file.size),
-        hasAudio: true,
-        createdAt: new Date().toISOString(),
-        hasContent: !!content
+      // Get duration from audio file
+      const audio = new Audio();
+      const objectUrl = URL.createObjectURL(file);
+      audio.src = objectUrl;
+
+      const saveFn = async (durationMin) => {
+        const entry = {
+          id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+          title: document.getElementById('meta-title').value || topic,
+          description: document.getElementById('meta-desc').value || '',
+          category: category,
+          duration: durationMin ? (durationMin + ' min') : 'Unknown',
+          fileName: file.name,
+          fileSize: formatFileSize(file.size),
+          hasAudio: true,
+          createdAt: new Date().toISOString(),
+          hasContent: !!content
+        };
+
+        try {
+          const docRef = await db.collection(COLLECTION).add(entry);
+          entry._docId = docRef.id;
+          library.unshift(entry);
+        } catch (err) {
+          console.error('Failed to save to Firestore:', err);
+        }
+
+        if (durationMin) document.getElementById('meta-duration').value = durationMin + ' min';
+
+        document.getElementById('final-upload-name').textContent = file.name + (durationMin ? (' · ' + durationMin + ' min') : '') + ' · ' + formatFileSize(file.size) + ' · Saved to library';
+        URL.revokeObjectURL(objectUrl);
+        showToast('Saved to library!');
       };
 
-      try {
-        const docRef = await db.collection(COLLECTION).add(entry);
-        entry._docId = docRef.id;
-        library.unshift(entry);
-      } catch (err) {
-        console.error('Failed to save to Firestore:', err);
-      }
+      audio.addEventListener('loadedmetadata', () => {
+        const durationMin = Math.round(audio.duration / 60);
+        saveFn(durationMin);
+      });
 
-      // Update duration in metadata tab
-      document.getElementById('meta-duration').value = durationMin + ' min';
-
-      // Show success
-      document.getElementById('final-upload-success').style.display = 'block';
-      document.getElementById('final-upload-name').textContent = file.name + ' · ' + durationMin + ' min · ' + formatFileSize(file.size) + ' · Saved to library';
-
-      URL.revokeObjectURL(audio.src);
-      showToast('Saved to library!');
-    });
+      // Fallback if loadedmetadata doesn't fire within 3 seconds
+      setTimeout(() => {
+        if (!audio.duration || isNaN(audio.duration)) {
+          saveFn(null);
+        }
+      }, 3000);
+    } catch (err) {
+      console.error('Error handling final upload:', err);
+      showToast('Error uploading file — ' + err.message);
+    }
   }
 
   // Re-enable drop zones for this tab
@@ -2089,7 +2106,7 @@ brew install ffmpeg</pre>
     const prompt = `Based on this deep dive session content for a peer support platform (narcissistic abuse recovery), generate:
 
 1. A session title (5-8 words, warm but direct, no generic self-help language, no "journey", no "power of")
-2. A session description (2-3 sentences max, written like a friend explaining what this session covers — not a marketing pitch)
+2. A session description (two short paragraphs, written like a friend explaining what this session covers — not a marketing pitch. First paragraph: what the session is about. Second paragraph: what listeners will take away.)
 
 Generate 3 options for each.
 
@@ -2110,16 +2127,16 @@ DESC 3: [description]`;
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: "anthropic/claude-sonnet-4",
-          max_tokens: 1000,
+          max_tokens: 2000,
           messages: [{ role: "user", content: prompt }]
         })
       });
 
       const text = await readSSEStream(response, 'Metadata');
 
-      // Parse first title and first desc
+      // Parse first title and first desc (desc may be multi-line / two paragraphs)
       const titleMatch = text.match(/TITLE 1:\s*(.+)/);
-      const descMatch = text.match(/DESC 1:\s*(.+)/);
+      const descMatch = text.match(/DESC 1:\s*([\s\S]+?)(?=\nDESC 2:|\nTITLE|\s*$)/);
 
       if (titleMatch) document.getElementById('meta-title').value = titleMatch[1].trim();
       if (descMatch) document.getElementById('meta-desc').value = descMatch[1].trim();
