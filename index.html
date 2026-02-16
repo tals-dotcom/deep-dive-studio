@@ -1311,8 +1311,12 @@
     <div class="card">
       <div class="card-label"><span class="step">1</span> Closing Audio Segment</div>
       <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">
-        This closing segment gets stitched to the end of every deep dive automatically. You can also download it separately.
+        This closing segment gets stitched to the end of every deep dive when enabled. You can also download it separately.
       </p>
+      <label style="display:flex; align-items:center; gap:8px; margin-bottom:12px; cursor:pointer; font-size:14px;">
+        <input type="checkbox" id="include-closing" checked style="width:16px; height:16px; cursor:pointer;">
+        Include closing segment in final audio
+      </label>
       <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
         <button class="btn btn-secondary btn-sm" onclick="downloadClosingFile()">Download closing file</button>
         <span style="font-size:12px; color:var(--text-muted);">Emily_Deep_Dive_Closure.mp3 · 302 KB</span>
@@ -1862,22 +1866,37 @@
       const inputExt = podcastFile.name.split('.').pop() || 'mp3';
       await ffmpegInstance.writeFile('input.' + inputExt, await fetchFile(podcastFile));
 
-      // Decode closing segment from embedded base64
-      const closingData = Uint8Array.from(atob(CLOSING_FILE_B64), c => c.charCodeAt(0));
-      await ffmpegInstance.writeFile('closing.mp3', closingData);
+      const includeClosing = document.getElementById('include-closing').checked;
+
+      if (includeClosing) {
+        // Decode closing segment from embedded base64
+        const closingData = Uint8Array.from(atob(CLOSING_FILE_B64), c => c.charCodeAt(0));
+        await ffmpegInstance.writeFile('closing.mp3', closingData);
+      }
 
       const speed = document.getElementById('audio-speed').value;
       statusEl.textContent = 'Processing audio... this may take 30-60 seconds';
       document.getElementById('process-progress-fill').style.width = '5%';
 
-      // Run ffmpeg: slow down + concatenate with closing segment
-      const result = await ffmpegInstance.exec([
-        '-i', 'input.' + inputExt,
-        '-i', 'closing.mp3',
-        '-filter_complex', '[0:a]atempo=' + speed + '[a0];[a0][1:a]concat=n=2:v=0:a=1[out]',
-        '-map', '[out]',
-        '-y', 'output.wav'
-      ]);
+      let result;
+      if (includeClosing) {
+        // Run ffmpeg: slow down + concatenate with closing segment
+        result = await ffmpegInstance.exec([
+          '-i', 'input.' + inputExt,
+          '-i', 'closing.mp3',
+          '-filter_complex', '[0:a]atempo=' + speed + '[a0];[a0][1:a]concat=n=2:v=0:a=1[out]',
+          '-map', '[out]',
+          '-y', 'output.wav'
+        ]);
+      } else {
+        // Run ffmpeg: slow down only, no closing segment
+        result = await ffmpegInstance.exec([
+          '-i', 'input.' + inputExt,
+          '-filter_complex', '[0:a]atempo=' + speed + '[out]',
+          '-map', '[out]',
+          '-y', 'output.wav'
+        ]);
+      }
 
       if (result !== 0) {
         throw new Error('ffmpeg processing failed (exit code ' + result + ')');
@@ -1889,7 +1908,7 @@
 
       // Clean up ffmpeg filesystem
       await ffmpegInstance.deleteFile('input.' + inputExt);
-      await ffmpegInstance.deleteFile('closing.mp3');
+      if (includeClosing) await ffmpegInstance.deleteFile('closing.mp3');
       await ffmpegInstance.deleteFile('output.wav');
 
       // Show success
