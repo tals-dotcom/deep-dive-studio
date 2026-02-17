@@ -1880,21 +1880,23 @@
 
       let result;
       if (includeClosing) {
-        // Run ffmpeg: slow down + concatenate with closing segment
+        // Run ffmpeg: slow down + concatenate with closing segment, output MP3
         result = await ffmpegInstance.exec([
           '-i', 'input.' + inputExt,
           '-i', 'closing.mp3',
           '-filter_complex', '[0:a]atempo=' + speed + '[a0];[a0][1:a]concat=n=2:v=0:a=1[out]',
           '-map', '[out]',
-          '-y', 'output.wav'
+          '-codec:a', 'libmp3lame', '-b:a', '128k',
+          '-y', 'output.mp3'
         ]);
       } else {
-        // Run ffmpeg: slow down only, no closing segment
+        // Run ffmpeg: slow down only, no closing segment, output MP3
         result = await ffmpegInstance.exec([
           '-i', 'input.' + inputExt,
           '-filter_complex', '[0:a]atempo=' + speed + '[out]',
           '-map', '[out]',
-          '-y', 'output.wav'
+          '-codec:a', 'libmp3lame', '-b:a', '128k',
+          '-y', 'output.mp3'
         ]);
       }
 
@@ -1903,13 +1905,13 @@
       }
 
       // Read output
-      const outputData = await ffmpegInstance.readFile('output.wav');
-      processedAudioBlob = new Blob([outputData.buffer], { type: 'audio/wav' });
+      const outputData = await ffmpegInstance.readFile('output.mp3');
+      processedAudioBlob = new Blob([outputData.buffer], { type: 'audio/mpeg' });
 
       // Clean up ffmpeg filesystem
       await ffmpegInstance.deleteFile('input.' + inputExt);
       if (includeClosing) await ffmpegInstance.deleteFile('closing.mp3');
-      await ffmpegInstance.deleteFile('output.wav');
+      await ffmpegInstance.deleteFile('output.mp3');
 
       // Show success
       progressEl.style.display = 'none';
@@ -1932,7 +1934,7 @@
 
   function downloadProcessedAudio() {
     if (!processedAudioBlob) { showToast('No processed audio to download'); return; }
-    const outputName = buildFileName() + '.wav';
+    const outputName = buildFileName() + '.mp3';
     const url = URL.createObjectURL(processedAudioBlob);
     const a = document.createElement('a');
     a.href = url;
